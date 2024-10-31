@@ -100,10 +100,9 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 static void button() {
 	static uint32_t last_button_tick;
 	static enum { SHOW_POT, SHOW_VOLT, SHOW_TEMP } state = SHOW_POT;
-	uint32_t SysTick = HAL_GetTick();
 
 	// vzorkuj button kazdych 40 ms
-	if (SysTick > last_button_tick + BUTTON_DELAY){
+	if (HAL_GetTick() > last_button_tick + BUTTON_DELAY){
 		// tady divne, systick opravit a melo by to jet
 		last_button_tick = HAL_GetTick();
 
@@ -113,10 +112,10 @@ static void button() {
 		uint32_t new_s1 = HAL_GPIO_ReadPin(S1_GPIO_Port, S1_Pin);
 
 		if (old_s2 && !new_s2) { // falling edge
-			state == SHOW_VOLT;
+			state = SHOW_VOLT;
 		}
 		else if( old_s1 && !new_s1){
-			state == SHOW_TEMP;
+			state = SHOW_TEMP;
 		}
 
 		// uloz nove vzorky do starsich
@@ -129,9 +128,11 @@ static void button() {
 		} else if (state == SHOW_TEMP) {
 			sct_value(raw_temp , 0);
 			HAL_Delay(DELAY);
+			state = SHOW_POT;
 		} else if (state == SHOW_VOLT){
 			sct_value(raw_volt , 0);
 			HAL_Delay(DELAY);
+			state = SHOW_POT;
 		}
 
 	}
